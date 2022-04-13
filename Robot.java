@@ -4,9 +4,15 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.motorcontrol.MotorController;
+import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+import edu.wpi.first.wpilibj.motorcontrol.Victor;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -15,20 +21,29 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * project.
  */
 public class Robot extends TimedRobot {
-  private static final String kDefaultAuto = "Default";
-  private static final String kCustomAuto = "My Auto";
-  private String m_autoSelected;
-  private final SendableChooser<String> m_chooser = new SendableChooser<>();
+  
+  Victor frontLeft = new Victor(1);
+  Victor frontRight = new Victor(0);
+  Victor rearLeft = new Victor(3);
+  Victor rearRight = new Victor(2);
+  Victor intake = new Victor(4);
+  Victor feeder = new Victor(7);
+  Victor frontshooter = new Victor(5);
+  Victor rearShooter = new Victor(6);
 
-  /**
-   * This function is run when the robot is first started up and should be used for any
-   * initialization code.
-   */
+  Joystick joystick = new Joystick(0);
+  
+  MotorControllerGroup leftGroup = new MotorControllerGroup(frontLeft, rearLeft);
+  MotorControllerGroup rightGroup  = new MotorControllerGroup(frontRight, rearRight);
+
+  DifferentialDrive motor = new DifferentialDrive(leftGroup,rightGroup);
+
+
+
+
   @Override
   public void robotInit() {
-    m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
-    m_chooser.addOption("My Auto", kCustomAuto);
-    SmartDashboard.putData("Auto choices", m_chooser);
+    
   }
 
   /**
@@ -53,23 +68,13 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-    m_autoSelected = m_chooser.getSelected();
-    // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
-    System.out.println("Auto selected: " + m_autoSelected);
+
   }
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    switch (m_autoSelected) {
-      case kCustomAuto:
-        // Put custom auto code here
-        break;
-      case kDefaultAuto:
-      default:
-        // Put default auto code here
-        break;
-    }
+    
   }
 
   /** This function is called once when teleop is enabled. */
@@ -78,7 +83,54 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    motor.arcadeDrive(joystick.getRawAxis(1),joystick.getRawAxis(2));
+    if(joystick.getRawButton(1)){
+      frontshooter.set(1);
+      rearShooter.set(1);
+    }
+    else if(joystick.getRawButtonReleased(1)){
+      frontshooter.set(0);
+      rearShooter.set(0);
+    }
+    else if(joystick.getRawButton(5)){
+      frontshooter.set(-1);
+      rearShooter.set(-1);
+    }
+    else if(joystick.getRawButtonReleased(5)){
+      frontshooter.set(0);
+      rearShooter.set(0);
+    }
+    
+    if(joystick.getRawButton(2)){
+      intake.set(1);
+    }
+    else if(joystick.getRawButtonReleased(2)){
+      intake.set(0);
+    }
+    else if(joystick.getRawButton(3)){
+      intake.set(-1);
+    }
+    else if(joystick.getRawButton(3)){
+      intake.set(0);
+    }
+
+    if(joystick.getRawButton(4)){
+      feeder.set(1);
+    }
+    else if(joystick.getRawButtonReleased(4)){
+      feeder.set(0);
+    }
+    else if(joystick.getRawButton(6)){
+      feeder.set(-1);
+    }
+    else if(joystick.getRawButton(6)){
+      feeder.set(0);
+    }
+    
+  }
+    
+    
 
   /** This function is called once when the robot is disabled. */
   @Override
