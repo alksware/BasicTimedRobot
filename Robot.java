@@ -90,6 +90,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     motor.arcadeDrive(joystick.getRawAxis(1),joystick.getRawAxis(2));
+    
     if(joystick.getRawButton(1)){
       frontshooter.set(1);
       rearShooter.set(1);
@@ -116,7 +117,7 @@ public class Robot extends TimedRobot {
     else if(joystick.getRawButton(3)){
       intake.set(-1);
     }
-    else if(joystick.getRawButton(3)){
+    else if(joystick.getRawButtonReleased(3)){
       intake.set(0);
     }
 
@@ -129,7 +130,7 @@ public class Robot extends TimedRobot {
     else if(joystick.getRawButton(6)){
       feeder.set(-1);
     }
-    else if(joystick.getRawButton(6)){
+    else if(joystick.getRawButtonReleased(6)){
       feeder.set(0);
     }
 
