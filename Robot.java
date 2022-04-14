@@ -4,14 +4,22 @@
 
 package frc.robot;
 
+import java.time.temporal.IsoFields;
+
+import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.motorcontrol.Victor;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+
 
 
 /**
@@ -33,11 +41,14 @@ public class Robot extends TimedRobot {
 
   Joystick joystick = new Joystick(0);
   
+
   MotorControllerGroup leftGroup = new MotorControllerGroup(frontLeft, rearLeft);
   MotorControllerGroup rightGroup  = new MotorControllerGroup(frontRight, rearRight);
 
   DifferentialDrive motor = new DifferentialDrive(leftGroup,rightGroup);
-
+  
+  Compressor compressor = new Compressor(PneumaticsModuleType.CTREPCM);
+  DoubleSolenoid solenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM,1,2);
 
 
 
@@ -127,8 +138,24 @@ public class Robot extends TimedRobot {
     else if(joystick.getRawButton(6)){
       feeder.set(0);
     }
+
+    if(joystick.getTrigger()){
+      solenoid.set(Value.kForward);
+    }
+    else if(joystick.getTrigger()){
+      solenoid.set(Value.kReverse);
+    }
+
+    if(joystick.getRawButton(8)){ //change
+      compressor.start();
+    }
+    else if(joystick.getRawButton(9)){ //change
+      compressor.stop();
+    } 
+
     
   }
+
     
     
 
