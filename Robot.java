@@ -9,10 +9,8 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.motorcontrol.Victor;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -46,6 +44,8 @@ public class Robot extends TimedRobot {
   Compressor comp = new Compressor(PneumaticsModuleType.CTREPCM);
   DoubleSolenoid solenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0,1);
 
+  Timer timer = new Timer();
+
   @Override
   public void robotInit() {
     
@@ -73,13 +73,43 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-
+    timer.reset();
+    timer.start();
   }
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    
+    if(timer.get()<3){
+      leftGroup.set(0.20);
+      rightGroup.set(0.20);
+    }
+    else if(timer.get()>3 & timer.get()<5){
+      comp.enableDigital();
+      solenoid.set(Value.kReverse);
+    }
+    else if(timer.get()>5 & timer.get()<7){
+      intake.set(1);
+    }
+    else if(timer.get()>8 & timer.get()<10){
+      intake.set(0);
+      feeder.set(-1);
+    }
+    else if(timer.get()>11 & timer.get()<13){
+      feeder.set(0);
+      frontshooter.set(-1);
+      rearShooter.set(-1);
+    }
+    else if(timer.get()>13 & timer.get()<16){
+      frontshooter.set(0);
+      rearShooter.set(0);
+      leftGroup.set(-0.20);
+      rightGroup.set(-0.20);
+    }
+    else if(timer.get()>16 & timer.get()<19){
+      comp.disable();
+      solenoid.set(Value.kForward);
+    }
   }
 
   /** This function is called once when teleop is enabled. */
@@ -90,7 +120,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     motor.arcadeDrive(joystick.getRawAxis(1),joystick.getRawAxis(2));
-    
+
     if(joystick.getRawButton(1)){
       frontshooter.set(1);
       rearShooter.set(1);
@@ -117,7 +147,7 @@ public class Robot extends TimedRobot {
     else if(joystick.getRawButton(3)){
       intake.set(-1);
     }
-    else if(joystick.getRawButtonReleased(3)){
+    else if(joystick.getRawButtonPressed(3)){
       intake.set(0);
     }
 
@@ -141,10 +171,10 @@ public class Robot extends TimedRobot {
       solenoid.set(Value.kReverse);
     }
     if(joystick.getRawButton(8)){
-      comp.start();
+      comp.enableDigital();
     }
-    else if(joystick.getRawButton(9)){
-      comp.stop();
+    else if(joystick.getRawButtonReleased(9)){
+      comp.disable();
     }
     
   }
