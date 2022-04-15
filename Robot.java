@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 
 
+
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation. If you change the name of this class or
@@ -80,7 +81,7 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    if(timer.get()<3){
+   if(timer.get()<3){
       leftGroup.set(0.20);
       rightGroup.set(0.20);
     }
@@ -110,7 +111,9 @@ public class Robot extends TimedRobot {
       comp.disable();
       solenoid.set(Value.kForward);
     }
-  }
+  } 
+
+  
 
   /** This function is called once when teleop is enabled. */
   @Override
@@ -138,23 +141,23 @@ public class Robot extends TimedRobot {
       rearShooter.set(0);
     }
     
-    if(joystick.getRawButton(2)){
+    if(joystick.getRawButton(3)){
       intake.set(1);
     }
-    else if(joystick.getRawButtonReleased(2)){
+    else if(joystick.getRawButtonReleased(3)){
       intake.set(0);
     }
-    else if(joystick.getRawButton(3)){
+    else if(joystick.getRawButton(4)){
       intake.set(-1);
     }
-    else if(joystick.getRawButtonPressed(3)){
+    else if(joystick.getRawButtonPressed(4)){
       intake.set(0);
     }
 
-    if(joystick.getRawButton(4)){
+    if(joystick.getRawButton(2)){
       feeder.set(1);
     }
-    else if(joystick.getRawButtonReleased(4)){
+    else if(joystick.getRawButtonReleased(2)){
       feeder.set(0);
     }
     else if(joystick.getRawButton(6)){
@@ -163,24 +166,23 @@ public class Robot extends TimedRobot {
     else if(joystick.getRawButtonReleased(6)){
       feeder.set(0);
     }
-
-    if(joystick.getRawButton(12)){
+    
+    else if(joystick.getThrottle() == -1){
       solenoid.set(Value.kForward);
     }
-    else if(joystick.getRawButton(11)){
+    else if(joystick.getThrottle() == 1 ){
       solenoid.set(Value.kReverse);
     }
-    if(joystick.getRawButton(8)){
+    
+    if(joystick.getRawButton(11)){
       comp.enableDigital();
     }
-    else if(joystick.getRawButtonReleased(9)){
+    else if(joystick.getRawButtonReleased(12)){
       comp.disable();
     }
     
   }
     
-    
-
   /** This function is called once when the robot is disabled. */
   @Override
   public void disabledInit() {}
