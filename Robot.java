@@ -6,14 +6,20 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.I2C.Port;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.motorcontrol.Victor;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.wpilibj.XboxController; 
 
 
 
@@ -36,6 +42,7 @@ public class Robot extends TimedRobot {
   Victor rearShooter = new Victor(6);
 
   Joystick joystick = new Joystick(0);
+  XboxController xbox = new XboxController(0);
   
   MotorControllerGroup leftGroup = new MotorControllerGroup(frontLeft, rearLeft);
   MotorControllerGroup rightGroup  = new MotorControllerGroup(frontRight, rearRight);
@@ -45,11 +52,25 @@ public class Robot extends TimedRobot {
   Compressor comp = new Compressor(PneumaticsModuleType.CTREPCM);
   DoubleSolenoid solenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0,1);
 
+  Encoder encoder = new Encoder(0,1,true,EncodingType.k4X); 
+
   Timer timer = new Timer();
+
+  AHRS navX = new AHRS(Port.kMXP);
+
+  double setpoint = 0; 
+  final double kP = 0.5;  
+  final double kI = 0.5; 
+  final double kD = 0.1;
+  final double iLimit = 1;
+  double errorSum = 0; 
+  double lastTimestamp = 0; 
+  double lastError = 0;
+  final double kDrive = 1.0/128*6*Math.PI/12; 
 
   @Override
   public void robotInit() {
-    
+    encoder.reset(); 
   }
 
   /**
@@ -60,57 +81,53 @@ public class Robot extends TimedRobot {
    * SmartDashboard integrated updating.
    */
   @Override
-  public void robotPeriodic() {}
+  public void robotPeriodic() {
+    SmartDashboard.putNumber("encoder value", encoder.get()*kDrive);
+  }
 
-  /**
-   * This autonomous (along with the chooser code above) shows how to select between different
-   * autonomous modes using the dashboard. The sendable chooser code works with the Java
-   * SmartDashboard. If you prefer the LabVIEW Dashboard, remove all of the chooser code and
-   * uncomment the getString line to get the auto name from the text box below the Gyro
-   *
-   * <p>You can add additional auto modes by adding additional comparisons to the switch structure
-   * below with additional strings. If using the SendableChooser make sure to add them to the
-   * chooser code above as well.
-   */
+  
   @Override
   public void autonomousInit() {
     timer.reset();
     timer.start();
+    encoder.reset();
+    errorSum = 0;
+    lastTimestamp = Timer.getFPGATimestamp();
+
   }
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-   if(timer.get()<3){
-      leftGroup.set(0.20);
-      rightGroup.set(0.20);
+    navX.getAngleAdjustment();
+
+    if(xbox.getRawButton(1)){  
+      setpoint = 10;
     }
-    else if(timer.get()>3 & timer.get()<5){
-      comp.enableDigital();
-      solenoid.set(Value.kReverse);
+    else if(xbox.getRawButton(2)){ 
+      setpoint = 0;
     }
-    else if(timer.get()>5 & timer.get()<7){
-      intake.set(1);
+
+    //get sensor position
+    double sensorPosition = encoder.get()*kDrive;
+    double error = setpoint - sensorPosition;
+    double dt = Timer.getFPGATimestamp() - lastTimestamp;
+    if(Math.abs(error)<iLimit){
+      errorSum += error*dt;     //sor
     }
-    else if(timer.get()>8 & timer.get()<10){
-      intake.set(0);
-      feeder.set(-1);
-    }
-    else if(timer.get()>11 & timer.get()<13){
-      feeder.set(0);
-      frontshooter.set(-1);
-      rearShooter.set(-1);
-    }
-    else if(timer.get()>13 & timer.get()<16){
-      frontshooter.set(0);
-      rearShooter.set(0);
-      leftGroup.set(-0.20);
-      rightGroup.set(-0.20);
-    }
-    else if(timer.get()>16 & timer.get()<19){
-      comp.disable();
-      solenoid.set(Value.kForward);
-    }
+    double errorRate = (error- lastError) / dt; // sor
+    
+   
+    double outputSpeed_ = kP*error*kI*errorSum;
+    double outputSpeed = kP * error;
+
+    frontLeft.set(outputSpeed);
+    frontRight.set(outputSpeed);
+    rearLeft.set(-outputSpeed);
+    rearRight.set(-outputSpeed);
+
+      lastTimestamp = Timer.getFPGATimestamp(); 
+      lastError = error;
   } 
 
   
